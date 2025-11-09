@@ -1,0 +1,42 @@
+defaults :
+  - modulus_default
+  - arch:
+      - fully_connected
+            
+      
+
+        
+     
+  - optimizer : adam
+  - scheduler : tf_exponential_lr
+  - loss : sum
+  - _self_
+  
+
+
+arch:
+    fully_connected:
+        layer_size: 512
+        nr_layers: 6
+jit: false
+#run_mode: 'eval'
+
+scheduler:
+  decay_rate: 0.95
+  decay_steps: 2000
+  
+training:
+  rec_validation_freq: 1000
+  rec_inference_freq: 1000
+  rec_monitor_freq: 1000
+  rec_constraint_freq: 2000
+  max_steps: 2000000
+  
+  
+batch_size:
+  inlet: 160
+  outlet: 160
+  walls: 160
+  no_slip: 320
+  interior: 3200
+  
