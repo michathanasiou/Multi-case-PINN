@@ -688,13 +688,13 @@ def run(cfg: ModulusConfig) -> None:
     outlet_p = 0
     
    
-    channel_radius=0.05
+    channel_radius=0.005
     channel_center=(0,0)
-    channel_length = (-4*0.05, 4*0.05)
-    channel_width = (-1*0.05, 1*0.05)
+    channel_length = (-4*0.005, 4*0.005)
+    channel_width = (-1*0.005, 1*0.005)
     
     #scales
-    length_scale=0.1
+    length_scale=0.01
     velocity_scale=1.52
     time_scale=length_scale/velocity_scale
     density_scale=rho
@@ -702,8 +702,8 @@ def run(cfg: ModulusConfig) -> None:
     
     #non_dim quantities
     
-    channel_length_nd=(-4*0.05/length_scale, 4*0.05/length_scale)
-    channel_width_nd=(-1*0.05/length_scale, 1*0.05/length_scale)
+    channel_length_nd=(-4*0.005/length_scale, 4*0.005/length_scale)
+    channel_width_nd=(-1*0.005/length_scale, 1*0.005/length_scale)
     channel_radius_nd= channel_radius/length_scale
     
     inlet_u_nd=inlet_u/velocity_scale
