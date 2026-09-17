@@ -669,9 +669,116 @@ def run(cfg: ModulusConfig) -> None:
     fc= Symbol("fc")
     inlet_u= Symbol("inlet_u")
     param_ranges = {
-    fc: np.arange(0.1, 0.30, num=9).reshape(-1, 1),
+    fc: np.array([[0.1],
+                           [0.125],
+                           [0.15],
+                           [0.175],
+                           [0.2],
+                           [0.225],
+                           [0.25],
+                           [0.275],
+                           [0.3]
+                           ]),
 
-    inlet_u: np.arange(0.38, 1.33, 0.01).reshape(-1, 1), 
+    inlet_u: np.array([[0.38],
+                           [0.39],
+                           [0.4],
+                           [0.41],
+                           [0.42],
+                           [0.43],
+                           [0.44],
+                           [0.45],
+                           [0.46],
+                           [0.47],
+                           [0.48],
+                           [0.49],
+                           [0.5],
+                           [0.51],
+                           [0.52],
+                           [0.53],
+                           [0.54],
+                           [0.55],
+                           [0.56],
+                           [0.57],
+                           [0.58],
+                           [0.59],
+                           [0.6],
+                           [0.61],
+                           [0.62],
+                           [0.63],
+                           [0.64],
+                           [0.65],
+                           [0.66],
+                           [0.67],
+                           [0.68],
+                           [0.69],
+                           [0.7],
+                           [0.71],
+                           [0.72],
+                           [0.73],
+                           [0.74],
+                           [0.75],
+                           [0.76],
+                           [0.77],
+                           [0.78],
+                           [0.79],
+                           [0.8],
+                           [0.81],
+                           [0.82],
+                           [0.83],
+                           [0.84],
+                           [0.85],
+                           [0.86],
+                           [0.87],
+                           [0.88],
+                           [0.89],
+                           [0.9],
+                           [0.91],
+                           [0.92],
+                           [0.93],
+                           [0.94],
+                           [0.95],
+                           [0.96],
+                           [0.97],
+                           [0.98],
+                           [0.99],
+                           [1.0],
+                           [1.01],
+                           [1.02],
+                           [1.03],
+                           [1.04],
+                           [1.05],
+                           [1.06],
+                           [1.07],
+                           [1.08],
+                           [1.09],
+                           [1.1],
+                           [1.11],
+                            [1.12],
+                           [1.13],
+                           [1.14],
+                           [1.15],
+                           [1.16],
+                           [1.17],
+                           [1.18],
+                           [1.19],
+                           [1.2],
+                           [1.21],
+                           [1.22],
+                           [1.23],
+                           [1.24],
+                           [1.25],
+                           [1.26],
+                           [1.27],
+                           [1.28],
+                           [1.29],
+                           [1.3],
+                           [1.31],
+                           [1.32],
+                           [1.33],
+                           
+                          
+                           ]),
     
 
 }
@@ -687,22 +794,22 @@ def run(cfg: ModulusConfig) -> None:
     outlet_p = 0
     
    
-    channel_radius=0.05
+    channel_radius=0.005
     channel_center=(0,0)
-    channel_length = (-4*0.05, 4*0.05)
-    channel_width = (-1*0.05, 1*0.05)
+    channel_length = (-4*0.005, 4*0.005)
+    channel_width = (-1*0.005, 1*0.005)
     
     #scales
-    length_scale=0.1
-    velocity_scale=1.33
+    length_scale=0.01
+    velocity_scale=1.52
     time_scale=length_scale/velocity_scale
     density_scale=rho
     kinematic_viscocity_scale= length_scale**2/time_scale
     
     #non_dim quantities
     
-    channel_length_nd=(-4*0.05/length_scale, 4*0.05/length_scale)
-    channel_width_nd=(-1*0.05/length_scale, 1*0.05/length_scale)
+    channel_length_nd=(-4*0.005/length_scale, 4*0.005/length_scale)
+    channel_width_nd=(-1*0.005/length_scale, 1*0.005/length_scale)
     channel_radius_nd= channel_radius/length_scale
     
     inlet_u_nd=inlet_u/velocity_scale
@@ -788,7 +895,7 @@ def run(cfg: ModulusConfig) -> None:
         input_keys=[Key("x_case"), Key("y_case"),Key("cline"), Key("radius"),Key("dissq"),Key("cline_sq"),Key("radius_sq"),Key("cline_radius"),Key("cline_dissq"),Key("radius_dissq"),Key("fc"),Key("inlet_u")],
         output_keys=[Key("u"), Key("v"), Key("p")],
         cfg=cfg.arch.fully_connected,
-        adaptive_activations= True,
+        
     )
     
     
@@ -876,35 +983,20 @@ def run(cfg: ModulusConfig) -> None:
     domain.add_constraint(interior, "interior")
     
     
-    file_path = "/data/Specific/Study1.csv"
-    if os.path.exists(to_absolute_path(file_path)):
-        
-        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
-        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
-        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.256)})
-        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 1.111)})   
-            
-        openfoam_invar_numpy = {
-            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
-        }    
-            
-        print("File found and processed.")   
-            
-            
-        openfoam_inferencer=PointwiseInferencer(
-    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
-    )   
-        domain.add_inferencer(openfoam_inferencer, "Study1")   
-    else:
-        print(f"File not found: {to_absolute_path(file_path)}")        
     
-    file_path = "/data/Specific/Study2.csv"
+             
+    
+    
+    
+    
+    
+    file_path = "/data/Re500/fc0.1/comsol_data_transformed.csv"
     if os.path.exists(to_absolute_path(file_path)):
         
         mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
         openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
-        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.212)})
-        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 0.389)})   
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.1)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 0.3775)})   
             
         openfoam_invar_numpy = {
             key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
@@ -916,18 +1008,75 @@ def run(cfg: ModulusConfig) -> None:
         openfoam_inferencer=PointwiseInferencer(
     nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
     )   
-        domain.add_inferencer(openfoam_inferencer, "Study2")   
+        domain.add_inferencer(openfoam_inferencer, "TEST1")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    file_path = "/data/Re500/fc0.2/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.2)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST2")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    
+    
+    file_path = "/data/Re500/fc0.3/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.3)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST3")   
     else:
         print(f"File not found: {to_absolute_path(file_path)}")
         
+        
     
-    file_path = "/data/Specific/Study3.csv"
+    
+    
+    
+    
+    
+    
+    file_path = "/data/Re750/fc0.1/comsol_data_transformed.csv"
     if os.path.exists(to_absolute_path(file_path)):
         
         mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
         openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
-        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.162)})
-        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 0.925)})   
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.1)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 1.5*0.3775)})   
             
         openfoam_invar_numpy = {
             key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
@@ -939,16 +1088,397 @@ def run(cfg: ModulusConfig) -> None:
         openfoam_inferencer=PointwiseInferencer(
     nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
     )   
-        domain.add_inferencer(openfoam_inferencer, "Study3")   
+        domain.add_inferencer(openfoam_inferencer, "TEST4")   
     else:
-        print(f"File not found: {to_absolute_path(file_path)}")      
-            
-            
-            
+        print(f"File not found: {to_absolute_path(file_path)}")
     
     
     
+    file_path = "/data/Re750/fc0.2/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
         
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.2)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 1.5*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST5")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    
+    
+    file_path = "/data/Re750/fc0.3/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.3)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 1.5*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST6")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    
+    
+    file_path = "/data/Re1000/fc0.1/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.1)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 2*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST7")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    file_path = "/data/Re1000/fc0.2/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.2)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 2*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST8")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    
+    
+    file_path = "/data/Re1000/fc0.3/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.3)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 2*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST9")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    
+    file_path = "/data/Re1250/fc0.1/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.1)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 2.5*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST10")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    file_path = "/data/Re1250/fc0.2/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.2)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 2.5*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST11")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    
+    
+    file_path = "/data/Re1250/fc0.3/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.3)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 2.5*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST12")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    
+    
+    
+    file_path = "/data/Re1500/fc0.1/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.1)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 3*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST13")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    file_path = "/data/Re1500/fc0.2/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.2)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 3*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST14")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    
+    
+    file_path = "/data/Re1500/fc0.3/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.3)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 3*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST15")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    
+    
+    
+    
+    file_path = "/data/Re1750/fc0.1/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.1)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 3.5*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST16")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    file_path = "/data/Re1750/fc0.2/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.2)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 3.5*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST17")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    
+    
+    file_path = "/data/Re1750/fc0.3/comsol_data_transformed.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.3)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 3.5*0.3775)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "TEST18")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    
+    
+    file_path = "/data/Specific/SingleCaseComsol_trans.csv"
+    if os.path.exists(to_absolute_path(file_path)):
+        
+        mapping = {"x": "x", "y": "y", "u ": "u", "v ": "v", "p ": "p"}
+        openfoam_var = csv_to_dict(to_absolute_path(file_path), mapping)    
+        openfoam_var.update({"fc": np.full_like(openfoam_var["x"], 0.2)})
+        openfoam_var.update({"inlet_u": np.full_like(openfoam_var["x"], 1)})   
+            
+        openfoam_invar_numpy = {
+            key: value for key, value in openfoam_var.items() if key in ["x", "y","fc","inlet_u"]
+        }    
+            
+        print("File found and processed.")   
+            
+            
+        openfoam_inferencer=PointwiseInferencer(
+    nodes=nodes, invar=openfoam_invar_numpy, output_names=["u", "v", "p",'warpx','warpy',"cline","radius"]
+    )   
+        domain.add_inferencer(openfoam_inferencer, "multicase")   
+    else:
+        print(f"File not found: {to_absolute_path(file_path)}")
+    
+    
+    
+    
+    
+    
     # make solver
     slv = Solver(cfg, domain)
     
